@@ -17,6 +17,9 @@ namespace SJson
         void ParseValue();
         /* 合并 false、true、null 的解析函数 */
         void ParseLiteral(const char *literal, JsonType::type t);
+        /* 解析数字 */
+        void ParseNumber();
+
         JsonValue &m_val;
         const char *m_cur;
     };

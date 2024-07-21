@@ -15,9 +15,14 @@ namespace SJson
         JsonValue &operator=(const JsonValue &rhs) noexcept;
         ~JsonValue() noexcept;
 
+        /* null true false */
         int GetType() const noexcept;
         void SetType(JsonType::type t);
         void Parse(const std::string &content);
+
+        /* number */
+        double GetNumber() const noexcept;
+        void SetNumber(double d) noexcept;
 
     private:
         /* 初始化 JsonValue 与释放 JsonValue 的内存 */

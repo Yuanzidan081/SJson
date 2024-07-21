@@ -45,6 +45,21 @@ namespace SJson
         case 'f':
             ParseLiteral("false", JsonType::False);
             return;
+
+        /* case '\"':
+            parse_string();
+            return;
+        case '[':
+            parse_array();
+            return;
+        case '{':
+            parse_object();
+            return;*/
+        case '\0':
+            throw(JsonException("parse expect value"));
+        default:
+            ParseNumber();
+            return;
         }
     }
     void JsonParser::ParseLiteral(const char *literal, JsonType::type t)
@@ -59,5 +74,55 @@ namespace SJson
         // 解析成功，将 m_cur 右移 i 位，然后设置 val_ 的类型为 t
         m_cur += i;
         m_val.SetType(t);
+    }
+    void JsonParser::ParseNumber()
+    {
+        const char *p = m_cur;
+        // 处理负号
+        if (*p == '-')
+            p++;
+
+        // 处理整数部分，分为两种合法情况：一种是单个 0，另一种是一个 1~9 再加上任意数量的 digit。
+        if (*p == '0')
+            p++;
+        else
+        {
+            if (!isdigit(*p))
+                throw(JsonException("parse invalid value"));
+            while (isdigit(*++p))
+                ;
+        }
+
+        // 处理小数部分：小数点后面第一个数不是数字，则抛出异常，然后再处理连续的数字
+        if (*p == '.')
+        {
+            if (!isdigit(*++p))
+                throw(JsonException("parse invalid value"));
+            while (isdigit(*++p))
+                ;
+        }
+
+        // 处理指数部分：需要处理指数的符号，符号之后的第一个字符不是数字，则抛出异常；然后再处理连续的数字
+        if (*p == 'e' || *p == 'E')
+        {
+            ++p;
+            if (*p == '+' || *p == '-')
+                ++p;
+            if (!isdigit(*p))
+                throw(JsonException("parse invalid value"));
+            while (isdigit(*++p))
+                ;
+        }
+
+        errno = 0;
+        // 将 json 的十进制数字转换为 double 型的二进制数字
+        double v = strtod(m_cur, NULL);
+        // 如果转换出来的数字过大，则抛出异常
+        if (errno == ERANGE && (v == HUGE_VAL || v == -HUGE_VAL))
+            throw(JsonException("parse number too big"));
+
+        // 最后设置 Value 为数字，然后更新 m_cur 的位置
+        m_val.SetNumber(v);
+        m_cur = p;
     }
 }

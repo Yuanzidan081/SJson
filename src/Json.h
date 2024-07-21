@@ -34,13 +34,24 @@ namespace SJson
         /* 解析 json 字符串 */
         void Parse(const std::string &content, std::string &status) noexcept;
         void Parse(const std::string &content);
+
         /* null true false */
         int GetType() const noexcept;
         void SetNull() noexcept;
         void SetBoolean(bool b) noexcept;
-
+        Json &operator=(bool b) noexcept
+        {
+            SetBoolean(b);
+            return *this;
+        }
         /* number */
-        // double get_number() const noexcept;
+        double GetNumber() const noexcept;
+        void SetNumber(double d) noexcept;
+        Json &operator=(double d) noexcept
+        {
+            SetNumber(d);
+            return *this;
+        }
 
     private:
         /* 使用桥接模式，Json暴露给用户，JsonValue来获取具体的值 */

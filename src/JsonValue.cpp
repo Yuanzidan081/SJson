@@ -1,3 +1,5 @@
+#include <assert.h>
+#include <string>
 #include "JsonValue.h"
 #include "JsonParser.h"
 namespace SJson
@@ -29,6 +31,19 @@ namespace SJson
     void JsonValue::Parse(const std::string &content)
     {
         JsonParser(*this, content);
+    }
+
+    double JsonValue::GetNumber() const noexcept
+    {
+        assert(m_type == JsonType::Number);
+        return m_num;
+    }
+
+    void JsonValue::SetNumber(double d) noexcept
+    {
+        Free();
+        m_type = JsonType::Number;
+        m_num = d;
     }
 
     void JsonValue::Init(const JsonValue &rhs) noexcept

@@ -81,4 +81,12 @@ namespace SJson
         else
             m_Value->SetType(JsonType::False);
     }
+    double Json::GetNumber() const noexcept
+    {
+        return m_Value->GetNumber();
+    }
+    void Json::SetNumber(double d) noexcept
+    {
+        m_Value->SetNumber(d);
+    }
 }
