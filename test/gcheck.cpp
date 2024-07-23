@@ -181,3 +181,158 @@ TEST(TestObject, Object)
         }
     }
 }
+
+#define test_error(error, content)                \
+    do                                            \
+    {                                             \
+        SJson::Json v;                            \
+        v.Parse(content, status);                 \
+        EXPECT_EQ(error, status);                 \
+        EXPECT_EQ((JsonType::Null), v.GetType()); \
+    } while (0)
+
+// 测试解析期望值
+TEST(TestParseExpectValue, ParseExpectValue)
+{
+    using namespace SJson;
+    test_error("parse expect value", "");
+    test_error("parse expect value", " ");
+}
+
+// 测试解析无效值
+TEST(TestParseInvalidValue, ParseInvalidValue)
+{
+    using namespace SJson;
+    test_error("parse invalid value", "nul");
+    test_error("parse invalid value", "!?");
+
+    test_error("parse invalid value", "+0");
+    test_error("parse invalid value", "+1");
+    test_error("parse invalid value", ".123"); // 在小数点之前必须有一位数字
+    test_error("parse invalid value", "1.");   // 在小数点之后必须有一位数字
+    test_error("parse invalid value", "INF");
+    test_error("parse invalid value", "NAN");
+    test_error("parse invalid value", "nan");
+
+#if 1
+    test_error("parse invalid value", "[1,]");
+    test_error("parse invalid value", "[\"a\", nul]");
+#endif
+}
+
+// 测试解析非单数根
+TEST(TestParseRootNotSingular, ParseRootNotSingular)
+{
+    using namespace SJson;
+    test_error("parse root not singular", "null x");
+    test_error("parse root not singular", "truead");
+    test_error("parse root not singular", "\"dsad\"d");
+
+    test_error("parse root not singular", "0123");
+    test_error("parse root not singular", "0x0");
+    test_error("parse root not singular", "0x123");
+}
+
+// 测试解析数字太大
+TEST(TestParseNumberTooBig, ParseNumberTooBig)
+{
+    using namespace SJson;
+    test_error("parse number too big", "1e309");
+    test_error("parse number too big", "-1e309");
+}
+
+// 测试解析缺失引号
+TEST(TestParseMissingQuotationMark, ParseMissingQuotationMark)
+{
+    using namespace SJson;
+    test_error("parse miss quotation mark", "\"");
+    test_error("parse miss quotation mark", "\"abc");
+}
+
+// 测试解析无效字符串转义
+TEST(TestParseInvalidStringEscape, ParseInvalidStringEscape)
+{
+    using namespace SJson;
+#if 1
+    test_error("parse invalid string escape", "\"\\v\"");
+    test_error("parse invalid string escape", "\"\\'\"");
+    test_error("parse invalid string escape", "\"\\0\"");
+    test_error("parse invalid string escape", "\"\\x12\"");
+#endif
+}
+
+// 测试解析无效字符串字符
+TEST(TestParseInvalidStringChar, ParseInvalidStringChar)
+{
+    using namespace SJson;
+#if 1
+    test_error("parse invalid string char", "\"\x01\"");
+    test_error("parse invalid string char", "\"\x1F\"");
+#endif
+}
+
+// 测试解析无效的unicode十六进制
+TEST(TestParseInvalidUnicodeHex, ParseInvalidUnicodeHex)
+{
+    using namespace SJson;
+    test_error("parse invalid unicode hex", "\"\\u\"");
+    test_error("parse invalid unicode hex", "\"\\u0\"");
+    test_error("parse invalid unicode hex", "\"\\u01\"");
+    test_error("parse invalid unicode hex", "\"\\u012\"");
+    test_error("parse invalid unicode hex", "\"\\u/000\"");
+    test_error("parse invalid unicode hex", "\"\\uG000\"");
+    test_error("parse invalid unicode hex", "\"\\u0/00\"");
+    test_error("parse invalid unicode hex", "\"\\u0G00\"");
+    test_error("parse invalid unicode hex", "\"\\u0/00\"");
+    test_error("parse invalid unicode hex", "\"\\u00G0\"");
+    test_error("parse invalid unicode hex", "\"\\u000/\"");
+    test_error("parse invalid unicode hex", "\"\\u000G\"");
+    test_error("parse invalid unicode hex", "\"\\u 123\"");
+}
+
+// 测试解析无效的unicode代理
+TEST(TestParseInvalidUnicodeSurrogate, ParseInvalidUnicodeSurrogate)
+{
+    using namespace SJson;
+    test_error("parse invalid unicode surrogate", "\"\\uD800\"");
+    test_error("parse invalid unicode surrogate", "\"\\uDBFF\"");
+    test_error("parse invalid unicode surrogate", "\"\\uD800\\\\\"");
+    test_error("parse invalid unicode surrogate", "\"\\uD800\\uDBFF\"");
+    test_error("parse invalid unicode surrogate", "\"\\uD800\\uE000\"");
+}
+
+// 测试解析缺失逗号或方括号
+TEST(TestParseMissCommaOrSquareBracket, ParseMissCommaOrSquareBracket)
+{
+    using namespace SJson;
+#if 1
+    test_error("parse miss comma or square bracket", "[1");
+    test_error("parse miss comma or square bracket", "[1}");
+    test_error("parse miss comma or square bracket", "[1 2");
+    test_error("parse miss comma or square bracket", "[[]");
+#endif
+}
+
+// 测试解析缺失key值
+TEST(TestParseMissKey, ParseMissKey)
+{
+    using namespace SJson;
+    test_error("parse miss key", "{:1,");
+    test_error("parse miss key", "{1:1,");
+    test_error("parse miss key", "{true:1,");
+    test_error("parse miss key", "{false:1,");
+    test_error("parse miss key", "{null:1,");
+    test_error("parse miss key", "{[]:1,");
+    test_error("parse miss key", "{{}:1,");
+    test_error("parse miss key", "{\"a\":1,");
+}
+
+// 测试解析漏掉逗号或大括号
+TEST(TestParseMissCommaOrCurlyBracket, ParseMissCommaOrCurlyBracket)
+{
+    using namespace SJson;
+    test_error("parse miss comma or curly bracket", "{\"a\":1");
+    test_error("parse miss comma or curly bracket", "{\"a\":1]");
+    test_error("parse miss comma or curly bracket", "{\"a\":1 \"b\"");
+    test_error("parse miss comma or curly bracket", "{\"a\":{}");
+}
