@@ -2,6 +2,7 @@
 #include <string>
 #include "JsonValue.h"
 #include "JsonParser.h"
+#include "JsonGenerator.h"
 namespace SJson
 {
     JsonValue &JsonValue::operator=(const JsonValue &rhs) noexcept
@@ -126,6 +127,11 @@ namespace SJson
     {
         assert(m_type == JsonType::Object);
         return m_object[index].first.size();
+    }
+
+    void JsonValue::Stringify(std::string &content) const noexcept
+    {
+        JsonGenerator(*this, content);
     }
 
     void JsonValue::Init(const JsonValue &rhs) noexcept

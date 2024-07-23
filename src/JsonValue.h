@@ -40,10 +40,13 @@ namespace SJson
         const JsonValue &GetObjectValue(size_t index) const noexcept;
         size_t GetObjectKeyLength(size_t index) const noexcept;
 
+        /* serialize */
+        void Stringify(std::string &content) const noexcept;
+
     private:
         /* 初始化 JsonValue 与释放 JsonValue 的内存 */
-        void
-        Init(const JsonValue &rhs) noexcept;
+
+        void Init(const JsonValue &rhs) noexcept;
         void Free() noexcept;
         JsonType::type m_type = JsonType::Null;
 

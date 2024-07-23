@@ -336,3 +336,72 @@ TEST(TestParseMissCommaOrCurlyBracket, ParseMissCommaOrCurlyBracket)
     test_error("parse miss comma or curly bracket", "{\"a\":1 \"b\"");
     test_error("parse miss comma or curly bracket", "{\"a\":{}");
 }
+
+// 往返测试：把一个 JSON 解析，然后再生成另一 JSON，逐字符比较两个 JSON 是否一模一样。
+// 先将 content 进行解析，然后判断是否解析成功；再然后将 v 生成一个 json 值存储在 status 中，最后比较 content 和 status 是否一样，这样就完成往返测试了
+#define test_roundtrip(content)        \
+    do                                 \
+    {                                  \
+        SJson::Json v;                 \
+        v.Parse(content, status);      \
+        EXPECT_EQ("parse ok", status); \
+        v.Stringify(status);           \
+        EXPECT_EQ(content, status);    \
+    } while (0)
+
+// 测试序列化数字
+TEST(TestStringifyNumber, StringifyNumber)
+{
+    test_roundtrip("0");
+    test_roundtrip("-0");
+    test_roundtrip("1");
+    test_roundtrip("-1");
+    test_roundtrip("1.5");
+    test_roundtrip("-1.5");
+    test_roundtrip("3.25");
+    test_roundtrip("1e+20");
+    test_roundtrip("1.234e+20");
+    test_roundtrip("1.234e-20");
+
+    test_roundtrip("1.0000000000000002");      /* the smallest number > 1 */
+    test_roundtrip("4.9406564584124654e-324"); /* minimum denormal */
+    test_roundtrip("-4.9406564584124654e-324");
+    test_roundtrip("2.2250738585072009e-308"); /* Max subnormal double */
+    test_roundtrip("-2.2250738585072009e-308");
+    test_roundtrip("2.2250738585072014e-308"); /* Min normal positive double */
+    test_roundtrip("-2.2250738585072014e-308");
+    test_roundtrip("1.7976931348623157e+308"); /* Max double */
+    test_roundtrip("-1.7976931348623157e+308");
+}
+
+// 测试序列化字符串
+TEST(TestStringifyString, StringifyString)
+{
+    test_roundtrip("\"\"");
+    test_roundtrip("\"Hello\"");
+    test_roundtrip("\"Hello\\nWorld\"");
+    test_roundtrip("\"\\\" \\\\ / \\b \\f \\n \\r \\t\"");
+    test_roundtrip("\"Hello\\u0000World\"");
+}
+
+// 测试序列化数组
+TEST(TestStringifyArray, StringifyArray)
+{
+    test_roundtrip("[]");
+    test_roundtrip("[null,false,true,123,\"abc\",[1,2,3]]");
+}
+
+// 测试序列化对象
+TEST(TestStringifyObject, StringifyObject)
+{
+    test_roundtrip("{}");
+    test_roundtrip("{\"n\":null,\"f\":false,\"t\":true,\"i\":123,\"s\":\"abc\",\"a\":[1,2,3],\"o\":{\"1\":1,\"2\":2,\"3\":3}}");
+}
+
+// 测试序列化的 null、false、true
+TEST(TestStringify, Stringify)
+{
+    test_roundtrip("null");
+    test_roundtrip("true");
+    test_roundtrip("false");
+}

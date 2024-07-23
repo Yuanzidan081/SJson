@@ -129,4 +129,8 @@ namespace SJson
     {
         return m_Value->GetObjectKeyLength(index);
     }
+    void Json::Stringify(std::string &content) const noexcept
+    {
+        m_Value->Stringify(content);
+    }
 }
