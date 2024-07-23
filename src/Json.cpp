@@ -107,4 +107,26 @@ namespace SJson
         ret.m_Value.reset(new JsonValue(m_Value->GetArrayElement(index)));
         return ret;
     }
+    void Json::SetObject() noexcept
+    {
+        m_Value->SetObject(std::vector<std::pair<std::string, JsonValue>>{});
+    }
+    size_t Json::GetObjectSize() const noexcept
+    {
+        return m_Value->GetObjectSize();
+    }
+    const std::string &Json::GetObjectKey(size_t index) const noexcept
+    {
+        return m_Value->GetObjectKey(index);
+    }
+    Json Json::GetObjectValue(size_t index) const noexcept
+    {
+        Json ret;
+        ret.m_Value.reset(new JsonValue(m_Value->GetObjectValue(index)));
+        return ret;
+    }
+    size_t Json::GetObjectKeyLength(size_t index) const noexcept
+    {
+        return m_Value->GetObjectKeyLength(index);
+    }
 }

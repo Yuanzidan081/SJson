@@ -122,3 +122,62 @@ TEST(TestArray, Array)
         }
     }
 }
+
+TEST(TestObject, Object)
+{
+    using namespace SJson;
+    SJson::Json v;
+
+    v.Parse(" { } ", status);
+    EXPECT_EQ("parse ok", status);
+    EXPECT_EQ(JsonType::Object, v.GetType());
+    EXPECT_EQ(0, v.GetObjectSize());
+
+    v.Parse(" { "
+            "\"n\" : null , "
+            "\"f\" : false , "
+            "\"t\" : true , "
+            "\"i\" : 123 , "
+            "\"s\" : \"abc\", "
+            "\"a\" : [ 1, 2, 3 ],"
+            "\"o\" : { \"1\" : 1, \"2\" : 2, \"3\" : 3 }"
+            " } ",
+            status);
+    EXPECT_EQ("parse ok", status);
+    EXPECT_EQ(JsonType::Object, v.GetType());
+    EXPECT_EQ(7, v.GetObjectSize());
+    EXPECT_EQ("n", v.GetObjectKey(0));
+    EXPECT_EQ(JsonType::Null, v.GetObjectValue(0).GetType());
+    EXPECT_EQ("f", v.GetObjectKey(1));
+    EXPECT_EQ(JsonType::False, v.GetObjectValue(1).GetType());
+    EXPECT_EQ("t", v.GetObjectKey(2));
+    EXPECT_EQ(JsonType::True, v.GetObjectValue(2).GetType());
+    EXPECT_EQ("i", v.GetObjectKey(3));
+    EXPECT_EQ(JsonType::Number, v.GetObjectValue(3).GetType());
+    EXPECT_EQ(123.0, v.GetObjectValue(3).GetNumber());
+    EXPECT_EQ("s", v.GetObjectKey(4));
+    EXPECT_EQ(JsonType::String, v.GetObjectValue(4).GetType());
+    EXPECT_EQ("abc", v.GetObjectValue(4).GetString());
+    EXPECT_EQ("a", v.GetObjectKey(5));
+    EXPECT_EQ(JsonType::Array, v.GetObjectValue(5).GetType());
+    EXPECT_EQ(3, v.GetObjectValue(5).GetArraySize());
+    for (int i = 0; i < 3; ++i)
+    {
+        SJson::Json e = v.GetObjectValue(5).GetArrayElement(i);
+        EXPECT_EQ(JsonType::Number, e.GetType());
+        EXPECT_EQ(i + 1.0, e.GetNumber());
+    }
+    EXPECT_EQ("o", v.GetObjectKey(6));
+    {
+        SJson::Json o = v.GetObjectValue(6);
+        EXPECT_EQ(JsonType::Object, o.GetType());
+        for (int i = 0; i < 3; i++)
+        {
+            SJson::Json ov = o.GetObjectValue(i);
+            EXPECT_EQ('1' + i, (o.GetObjectKey(i))[0]); // (o.get_object_key(i))[0] 表示获得string的第一个字符
+            EXPECT_EQ(1, o.GetObjectKeyLength(i));
+            EXPECT_EQ(JsonType::Number, ov.GetType());
+            EXPECT_EQ(i + 1.0, ov.GetNumber());
+        }
+    }
+}

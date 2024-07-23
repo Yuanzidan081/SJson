@@ -51,9 +51,9 @@ namespace SJson
         case '[':
             ParseArray();
             return;
-        /*case '{':
-            parse_object();
-            return;*/
+        case '{':
+            ParseObject();
+            return;
         case '\0':
             throw(JsonException("parse expect value"));
         default:
@@ -290,6 +290,77 @@ namespace SJson
             {
                 m_val.SetType(JsonType::Null);
                 throw(JsonException("parse miss comma or square bracket"));
+            }
+        }
+    }
+    void JsonParser::ParseObject()
+    {
+        Expect(m_cur, '{'); // 先跳过左花括号
+        ParseWhitespace();  // 第一个解析空白：在左花括号之后处理空白
+        std::vector<std::pair<std::string, JsonValue>> tmp;
+        std::string key;
+
+        // 遇到对象的右花括号，然后将当前字符的位置右移一位，然后 val_ 设置为对象 tmp
+        if (*m_cur == '}')
+        {
+            ++m_cur;
+            m_val.SetObject(tmp);
+            return;
+        }
+
+        for (;;)
+        {
+            /* 1、解析 key 值：若解析失败，则抛出异常 */
+            if (*m_cur != '\"')
+                throw(JsonException("parse miss key"));
+            try
+            {
+                ParseStringRaw(key);
+            }
+            catch (JsonException)
+            {
+                throw(JsonException("parse miss key"));
+            }
+
+            /* 2、解析"_:_"，冒号前后可有空白字符 */
+            ParseWhitespace(); // 第二个解析空白：处理冒号之前的所有空白
+            if (*m_cur++ != ':')
+                throw(JsonException("parse miss colon"));
+            ParseWhitespace(); // 第三个解析空白：处理冒号之后的所有空白
+
+            /* 3、解析冒号之后的值 */
+            try
+            {
+                ParseValue();
+            }
+            catch (JsonException)
+            {
+                m_val.SetType(JsonType::Null);
+                throw;
+            }
+
+            // 把解析到的值存入 tmp 中，然后将解析到的 val_ 设置为 null，并将 key 进行清空
+            tmp.push_back(std::make_pair(key, m_val));
+            m_val.SetType(JsonType::Null);
+            key.clear();
+
+            /* 4、解析 "_,_" 或 "_}" */
+            ParseWhitespace(); // 第四个解析空白：处理逗号或右花括号之前的空白
+            if (*m_cur == ',')
+            { // 处理逗号
+                ++m_cur;
+                ParseWhitespace(); // 第五个解析空白：处理逗号之后的空白
+            }
+            else if (*m_cur == '}')
+            { // 处理右花括号：将当前字符的位置右移一位，并设置 val_ 为对象 tmp
+                ++m_cur;
+                m_val.SetObject(tmp);
+                return;
+            }
+            else
+            { // 若解析失败，则将 val_ 的类型设置为 null，并抛出异常
+                m_val.SetType(JsonType::Null);
+                throw(JsonException("parse miss comma or curly bracket"));
             }
         }
     }

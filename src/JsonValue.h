@@ -33,6 +33,13 @@ namespace SJson
         const JsonValue &GetArrayElement(size_t index) const noexcept;
         void SetArray(const std::vector<JsonValue> &arr) noexcept;
 
+        /* object */
+        void SetObject(const std::vector<std::pair<std::string, JsonValue>> &obj) noexcept;
+        size_t GetObjectSize() const noexcept;
+        const std::string &GetObjectKey(size_t index) const noexcept;
+        const JsonValue &GetObjectValue(size_t index) const noexcept;
+        size_t GetObjectKeyLength(size_t index) const noexcept;
+
     private:
         /* 初始化 JsonValue 与释放 JsonValue 的内存 */
         void

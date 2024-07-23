@@ -66,6 +66,13 @@ namespace SJson
         size_t GetArraySize() const noexcept;
         Json GetArrayElement(size_t index) const noexcept;
 
+        /* object */
+        void SetObject() noexcept;
+        size_t GetObjectSize() const noexcept;
+        const std::string &GetObjectKey(size_t index) const noexcept;
+        Json GetObjectValue(size_t index) const noexcept;
+        size_t GetObjectKeyLength(size_t index) const noexcept;
+
     private:
         /* 使用桥接模式，Json暴露给用户，JsonValue来获取具体的值 */
         std::unique_ptr<JsonValue>

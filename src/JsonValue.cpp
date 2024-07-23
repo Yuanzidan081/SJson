@@ -90,6 +90,44 @@ namespace SJson
         }
     }
 
+    void JsonValue::SetObject(const std::vector<std::pair<std::string, JsonValue>> &obj) noexcept
+    {
+        if (m_type == JsonType::Object)
+            m_object = obj;
+        else
+        {
+            Free();
+            m_type = JsonType::Object;
+            new (&m_object) std::vector<std::pair<std::string, JsonValue>>(obj);
+        }
+    }
+
+    size_t JsonValue::GetObjectSize() const noexcept
+    {
+        assert(m_type == JsonType::Object);
+        return m_object.size();
+    }
+
+    const std::string &JsonValue::GetObjectKey(size_t index) const noexcept
+    {
+        assert(m_type == JsonType::Object);
+        assert(index >= 0 && index < m_object.size());
+        return m_object[index].first;
+    }
+
+    const JsonValue &JsonValue::GetObjectValue(size_t index) const noexcept
+    {
+        assert(m_type == JsonType::Object);
+        assert(index >= 0 && index < m_object.size());
+        return m_object[index].second;
+    }
+
+    size_t JsonValue::GetObjectKeyLength(size_t index) const noexcept
+    {
+        assert(m_type == JsonType::Object);
+        return m_object[index].first.size();
+    }
+
     void JsonValue::Init(const JsonValue &rhs) noexcept
     {
         m_type = rhs.m_type;

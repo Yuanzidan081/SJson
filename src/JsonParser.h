@@ -29,6 +29,8 @@ namespace SJson
         void ParseUTF8(std::string &str, unsigned u);
         /* 解析Array */
         void ParseArray();
+        /* 解析Object */
+        void ParseObject();
         JsonValue &m_val;
         const char *m_cur;
     };
