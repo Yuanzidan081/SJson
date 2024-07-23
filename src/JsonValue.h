@@ -28,6 +28,11 @@ namespace SJson
         const std::string &GetString() const noexcept;
         void SetString(const std::string &str) noexcept;
 
+        /* array */
+        size_t GetArraySize() const noexcept;
+        const JsonValue &GetArrayElement(size_t index) const noexcept;
+        void SetArray(const std::vector<JsonValue> &arr) noexcept;
+
     private:
         /* 初始化 JsonValue 与释放 JsonValue 的内存 */
         void

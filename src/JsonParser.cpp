@@ -48,10 +48,10 @@ namespace SJson
         case '\"':
             ParseString();
             return;
-        /*case '[':
-            parse_array();
+        case '[':
+            ParseArray();
             return;
-        case '{':
+        /*case '{':
             parse_object();
             return;*/
         case '\0':
@@ -243,4 +243,54 @@ namespace SJson
         }
     }
 
+    void JsonParser::ParseArray()
+    {
+        Expect(m_cur, '['); // 处理数字的左括号，然后将当前字符的位置右移一位
+        ParseWhitespace();  // 第一个解析空白：在左括号之后解析空白
+        std::vector<JsonValue> tmp;
+        if (*m_cur == ']')
+        { // 遇到数组的右括号，然后将当前字符位置右移一位，并将 Value 设置为数组 tmp
+            ++m_cur;
+            m_val.SetArray(tmp);
+            return;
+        }
+        for (;;)
+        {
+            // 先解析 json 值，如解析出现异常，则将 Value 设置为 null，然后抛出异常
+            try
+            {
+                ParseValue();
+            }
+            catch (JsonException)
+            {
+                m_val.SetType(JsonType::Null);
+                throw;
+            }
+            // 将解析出来的值加入到 tmp 后面
+            tmp.push_back(m_val);
+            ParseWhitespace(); // 第二个解析空白：在逗号之后处理空白
+
+            // 值之后若为逗号，将当前字符的位置右移一位，然后处理逗号之后的空白
+            if (*m_cur == ',')
+            {
+                ++m_cur;
+                ParseWhitespace(); // 第三个解析空白：在逗号之后处理空白
+            }
+
+            // 值之后若为右括号，则将当前字符的位置右移一位，然后将 val_ 设置为数组 tmp
+            else if (*m_cur == ']')
+            {
+                ++m_cur;
+                m_val.SetArray(tmp);
+                return;
+            }
+
+            // 若遇到解析失败，则直接抛出异常
+            else
+            {
+                m_val.SetType(JsonType::Null);
+                throw(JsonException("parse miss comma or square bracket"));
+            }
+        }
+    }
 }

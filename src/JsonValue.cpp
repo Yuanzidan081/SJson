@@ -65,6 +65,31 @@ namespace SJson
         }
     }
 
+    size_t JsonValue::GetArraySize() const noexcept
+    {
+        assert(m_type == JsonType::Array);
+        return m_array.size();
+    }
+
+    const JsonValue &JsonValue::GetArrayElement(size_t index) const noexcept
+    {
+        assert(m_type == JsonType::Array);
+        assert(index >= 0 && index < m_array.size());
+        return m_array[index];
+    }
+
+    void JsonValue::SetArray(const std::vector<JsonValue> &arr) noexcept
+    {
+        if (m_type == JsonType::Array)
+            m_array = arr;
+        else
+        {
+            Free();
+            m_type = JsonType::Array;
+            new (&m_array) std::vector<JsonValue>(arr);
+        }
+    }
+
     void JsonValue::Init(const JsonValue &rhs) noexcept
     {
         m_type = rhs.m_type;

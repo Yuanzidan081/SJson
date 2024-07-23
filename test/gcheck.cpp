@@ -83,3 +83,42 @@ TEST(TestString, String)
     test_string("\xF0\x9D\x84\x9E", "\"\\uD834\\uDD1E\""); /* G clef sign U+1D11E */
     test_string("\xF0\x9D\x84\x9E", "\"\\ud834\\udd1e\""); /* G clef sign U+1D11E */
 }
+
+TEST(TestArray, Array)
+{
+    using namespace SJson;
+    SJson::Json j;
+
+    j.Parse("[ ]", status);
+    EXPECT_EQ("parse ok", status);
+    EXPECT_EQ(JsonType::Array, j.GetType());
+    EXPECT_EQ(0, j.GetArraySize());
+
+    j.Parse("[ null , false , true , 123 , \"abc\" ]", status);
+    EXPECT_EQ("parse ok", status);
+    EXPECT_EQ(JsonType::Array, j.GetType());
+    EXPECT_EQ(5, j.GetArraySize());
+    EXPECT_EQ(JsonType::Null, j.GetArrayElement(0).GetType());
+    EXPECT_EQ(JsonType::False, j.GetArrayElement(1).GetType());
+    EXPECT_EQ(JsonType::True, j.GetArrayElement(2).GetType());
+    EXPECT_EQ(JsonType::Number, j.GetArrayElement(3).GetType());
+    EXPECT_EQ(JsonType::String, j.GetArrayElement(4).GetType());
+    EXPECT_EQ(123.0, j.GetArrayElement(3).GetNumber());
+    EXPECT_STREQ("abc", j.GetArrayElement(4).GetString().c_str());
+
+    j.Parse("[ [ ] , [ 0 ] , [ 0 , 1 ] , [ 0 , 1 , 2 ] ]", status);
+    EXPECT_EQ("parse ok", status);
+    EXPECT_EQ(JsonType::Array, j.GetType());
+    EXPECT_EQ(4, j.GetArraySize());
+    for (int i = 0; i < 4; i++)
+    {
+        SJson::Json a = j.GetArrayElement(i);
+        EXPECT_EQ(JsonType::Array, a.GetType());
+        for (int k = 0; k < i; k++)
+        {
+            SJson::Json b = a.GetArrayElement(k);
+            EXPECT_EQ(JsonType::Number, b.GetType());
+            EXPECT_EQ((double)k, b.GetNumber());
+        }
+    }
+}

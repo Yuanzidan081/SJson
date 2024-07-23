@@ -62,9 +62,14 @@ namespace SJson
             return *this;
         }
 
+        /* array */
+        size_t GetArraySize() const noexcept;
+        Json GetArrayElement(size_t index) const noexcept;
+
     private:
         /* 使用桥接模式，Json暴露给用户，JsonValue来获取具体的值 */
-        std::unique_ptr<JsonValue> m_Value;
+        std::unique_ptr<JsonValue>
+            m_Value;
         friend bool operator==(const Json &lhs, const Json &rhs) noexcept;
         friend bool operator!=(const Json &lhs, const Json &rhs) noexcept;
     };

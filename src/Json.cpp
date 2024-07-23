@@ -97,4 +97,14 @@ namespace SJson
     {
         m_Value->SetString(str);
     }
+    size_t Json::GetArraySize() const noexcept
+    {
+        return m_Value->GetArraySize();
+    }
+    Json Json::GetArrayElement(size_t index) const noexcept
+    {
+        Json ret;
+        ret.m_Value.reset(new JsonValue(m_Value->GetArrayElement(index)));
+        return ret;
+    }
 }
