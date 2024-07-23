@@ -53,6 +53,15 @@ namespace SJson
             return *this;
         }
 
+        /* string */
+        const std::string GetString() const noexcept;
+        void SetString(const std::string &str) noexcept;
+        Json &operator=(const std::string &str) noexcept
+        {
+            SetString(str);
+            return *this;
+        }
+
     private:
         /* 使用桥接模式，Json暴露给用户，JsonValue来获取具体的值 */
         std::unique_ptr<JsonValue> m_Value;

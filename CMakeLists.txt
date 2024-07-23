@@ -7,8 +7,15 @@ if(MSVC)
         $<$<CONFIG:Release>:/MT> # --|
         $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
     )
+    include(CheckCXXCompilerFlag)
+    CHECK_CXX_COMPILER_FLAG("/std:c++latest" _cpp_latest_flag_supported)
+
+    if(_cpp_latest_flag_supported)
+        add_compile_options("/std:c++latest")
+    endif()
 endif()
 
+# add_compile_options(-std=c++17)
 set(CMAKE_BUILD_TYPE Debug)
 
 message("Current build type: " ${CMAKE_BUILD_TYPE})

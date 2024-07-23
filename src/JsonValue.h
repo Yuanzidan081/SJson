@@ -24,9 +24,14 @@ namespace SJson
         double GetNumber() const noexcept;
         void SetNumber(double d) noexcept;
 
+        /* string */
+        const std::string &GetString() const noexcept;
+        void SetString(const std::string &str) noexcept;
+
     private:
         /* 初始化 JsonValue 与释放 JsonValue 的内存 */
-        void Init(const JsonValue &rhs) noexcept;
+        void
+        Init(const JsonValue &rhs) noexcept;
         void Free() noexcept;
         JsonType::type m_type = JsonType::Null;
 

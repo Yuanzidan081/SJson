@@ -89,4 +89,12 @@ namespace SJson
     {
         m_Value->SetNumber(d);
     }
+    const std::string Json::GetString() const noexcept
+    {
+        return m_Value->GetString();
+    }
+    void Json::SetString(const std::string &str) noexcept
+    {
+        m_Value->SetString(str);
+    }
 }

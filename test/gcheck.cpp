@@ -55,3 +55,31 @@ TEST(TestNumber, Number)
     test_number(1.234E-10, "1.234E-10");
     test_number(0.0, "1e-10000"); /* must underflow */
 }
+
+#define test_string(expect, content)                 \
+    do                                               \
+    {                                                \
+        SJson::Json j;                               \
+        j.Parse(content, status);                    \
+        EXPECT_EQ("parse ok", status);               \
+        EXPECT_EQ(JsonType::String, j.GetType());    \
+        EXPECT_STREQ(expect, j.GetString().c_str()); \
+    } while (0)
+
+TEST(TestString, String)
+{
+    using namespace SJson;
+
+    test_string("", "\"\"");
+    test_string("Hello", "\"Hello\"");
+
+    test_string("Hello\nWorld", "\"Hello\\nWorld\"");
+    test_string("\" \\ / \b \f \n \r \t", "\"\\\" \\\\ \\/ \\b \\f \\n \\r \\t\"");
+
+    test_string("Hello\0World", "\"Hello\\u0000World\"");
+    test_string("\x24", "\"\\u0024\"");                    /* Dollar sign U+0024 */
+    test_string("\xC2\xA2", "\"\\u00A2\"");                /* Cents sign U+00A2 */
+    test_string("\xE2\x82\xAC", "\"\\u20AC\"");            /* Euro sign U+20AC */
+    test_string("\xF0\x9D\x84\x9E", "\"\\uD834\\uDD1E\""); /* G clef sign U+1D11E */
+    test_string("\xF0\x9D\x84\x9E", "\"\\ud834\\udd1e\""); /* G clef sign U+1D11E */
+}

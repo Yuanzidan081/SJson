@@ -45,11 +45,10 @@ namespace SJson
         case 'f':
             ParseLiteral("false", JsonType::False);
             return;
-
-        /* case '\"':
-            parse_string();
+        case '\"':
+            ParseString();
             return;
-        case '[':
+        /*case '[':
             parse_array();
             return;
         case '{':
@@ -125,4 +124,123 @@ namespace SJson
         m_val.SetNumber(v);
         m_cur = p;
     }
+    void JsonParser::ParseString()
+    {
+        std::string s = "";
+        // 用临时值 s 来保存解析出来的字符串，然后将 s 赋值为 Value
+        ParseStringRaw(s);
+        m_val.SetString(s);
+    }
+    void JsonParser::ParseStringRaw(std::string &tmp)
+    {
+        Expect(m_cur, '\"'); // 跳过字符串的第一个引号
+        const char *p = m_cur;
+        unsigned u = 0, u2 = 0;
+        while (*p != '\"') // 直到解析到字符串结尾，也就是第二个引号
+        {
+            // 字符串的结尾不是双引号，说明该字符串缺少引号，抛出异常即可
+            if (*p == '\0')
+                throw(JsonException("parse miss quotation mark"));
+            // 处理 9 种转义字符：当前字符是'\'，然后跳到下一个字符
+            if (*p == '\\' && ++p)
+            {
+                switch (*p++)
+                {
+                case '\"':
+                    tmp += '\"';
+                    break;
+                case '\\':
+                    tmp += '\\';
+                    break;
+                case '/':
+                    tmp += '/';
+                    break;
+                case 'b':
+                    tmp += '\b';
+                    break;
+                case 'f':
+                    tmp += '\f';
+                    break;
+                case 'n':
+                    tmp += '\n';
+                    break;
+                case 'r':
+                    tmp += '\r';
+                    break;
+                case 't':
+                    tmp += '\t';
+                    break;
+                case 'u':
+                    // 遇到\u转义时，调用parse_hex4()来解析4位十六进制数字
+                    ParseHex4(p, u);
+                    if (u >= 0xD800 && u <= 0xDBFF)
+                    {
+                        if (*p++ != '\\')
+                            throw(JsonException("parse invalid unicode surrogate"));
+                        if (*p++ != 'u')
+                            throw(JsonException("parse invalid unicode surrogate"));
+                        ParseHex4(p, u2);
+                        if (u2 < 0xDC00 || u2 > 0xDFFF)
+                            throw(JsonException("parse invalid unicode surrogate"));
+                        u = (((u - 0xD800) << 10) | (u2 - 0xDC00)) + 0x10000;
+                    }
+                    // 把码点编码成 utf-8，写进缓冲区
+                    ParseUTF8(tmp, u);
+                    break;
+                default:
+                    throw(JsonException("parse invalid string escape"));
+                }
+            }
+            else if ((unsigned char)*p < 0x20)
+            {
+                throw(JsonException("parse invalid string char"));
+            }
+            else
+                tmp += *p++;
+        }
+        // 更新当前字符串的位置
+        m_cur = ++p;
+    }
+    void JsonParser::ParseHex4(const char *&p, unsigned &u)
+    {
+        u = 0;
+        for (size_t i = 0; i < 4; ++i)
+        {
+            char ch = *p++;
+            u <<= 4;
+            if (isdigit(ch))
+                u |= ch - '0';
+            else if (ch >= 'A' && ch <= 'F')
+                u |= ch - ('A' - 10);
+            else if (ch >= 'a' && ch <= 'f')
+                u |= ch - ('a' - 10);
+            else
+                throw(JsonException("parse invalid unicode hex"));
+        }
+    }
+    void JsonParser::ParseUTF8(std::string &str, unsigned u)
+    {
+        if (u <= 0x7F)
+            str += static_cast<char>(u & 0xFF);
+        else if (u <= 0x7FF)
+        {
+            str += static_cast<char>(0xC0 | ((u >> 6) & 0xFF));
+            str += static_cast<char>(0x80 | (u & 0x3F));
+        }
+        else if (u <= 0xFFFF)
+        {
+            str += static_cast<char>(0xE0 | ((u >> 12) & 0xFF));
+            str += static_cast<char>(0x80 | ((u >> 6) & 0x3F));
+            str += static_cast<char>(0x80 | (u & 0x3F));
+        }
+        else
+        {
+            assert(u <= 0x10FFFF);
+            str += static_cast<char>(0xF0 | ((u >> 18) & 0xFF));
+            str += static_cast<char>(0x80 | ((u >> 12) & 0x3F));
+            str += static_cast<char>(0x80 | ((u >> 6) & 0x3F));
+            str += static_cast<char>(0x80 | (u & 0x3F));
+        }
+    }
+
 }

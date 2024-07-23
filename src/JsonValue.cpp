@@ -46,6 +46,25 @@ namespace SJson
         m_num = d;
     }
 
+    const std::string &JsonValue::GetString() const noexcept
+    {
+        assert(m_type == JsonType::String);
+        return m_string;
+    }
+
+    void JsonValue::SetString(const std::string &str) noexcept
+    {
+        if (m_type == JsonType::String)
+            m_string = str;
+        else
+        {
+            // 释放内存，然后重新设置字符串
+            Free();
+            m_type = JsonType::String;
+            new (&m_string) std::string(str);
+        }
+    }
+
     void JsonValue::Init(const JsonValue &rhs) noexcept
     {
         m_type = rhs.m_type;
