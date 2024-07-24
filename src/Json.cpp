@@ -23,6 +23,9 @@ namespace SJson
 
     Json &Json::operator=(Json &&rhs) noexcept
     {
+        // rhs.m_Value.release() 返回它管理的指针，转移所有权，所以不对这个指针delete，并且rhs的m_Value定义为nullptr
+        // 当前类的m_Value原来管理的指针释放掉（使用delete1），而改为指向rhs.m_Value.release的指针
+
         m_Value.reset(rhs.m_Value.release());
         return *this;
     }
@@ -74,6 +77,10 @@ namespace SJson
             return JsonType::Null;
         return m_Value->GetType();
     }
+    void Json::SetNull() noexcept
+    {
+        m_Value->SetType(JsonType::Null);
+    }
     void Json::SetBoolean(bool b) noexcept
     {
         if (b)
@@ -107,6 +114,30 @@ namespace SJson
         ret.m_Value.reset(new JsonValue(m_Value->GetArrayElement(index)));
         return ret;
     }
+    void Json::SetArray() noexcept
+    {
+        m_Value->SetArray(std::vector<JsonValue>{});
+    }
+    void Json::PushbackArrayElement(const Json &val) noexcept
+    {
+        m_Value->PushbackArrayElement(*val.m_Value);
+    }
+    void Json::PopbackArrayElement() noexcept
+    {
+        m_Value->PopbackArrayElement();
+    }
+    void Json::EraseArrayElement(size_t index, size_t count) noexcept
+    {
+        m_Value->EraseArrayElement(index, count);
+    }
+    void Json::InsertArrayElement(const Json &val, size_t index) noexcept
+    {
+        m_Value->InsertArrayElement(*val.m_Value, index);
+    }
+    void Json::ClearArray() noexcept
+    {
+        m_Value->ClearArray();
+    }
     void Json::SetObject() noexcept
     {
         m_Value->SetObject(std::vector<std::pair<std::string, JsonValue>>{});
@@ -128,6 +159,22 @@ namespace SJson
     size_t Json::GetObjectKeyLength(size_t index) const noexcept
     {
         return m_Value->GetObjectKeyLength(index);
+    }
+    void Json::SetObjectValue(const std::string &key, const Json &val) noexcept
+    {
+        m_Value->SetObjectValue(key, *val.m_Value);
+    }
+    long long Json::FindObjectIndex(const std::string &key) const noexcept
+    {
+        return m_Value->FindObjectIndex(key);
+    }
+    void Json::RemoveObjectValue(size_t index) noexcept
+    {
+        m_Value->RemoveObjectValue(index);
+    }
+    void Json::ClearObject() noexcept
+    {
+        m_Value->ClearObject();
     }
     void Json::Stringify(std::string &content) const noexcept
     {

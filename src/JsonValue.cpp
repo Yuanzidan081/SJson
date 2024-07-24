@@ -91,6 +91,36 @@ namespace SJson
         }
     }
 
+    void JsonValue::PushbackArrayElement(const JsonValue &val) noexcept
+    {
+        assert(m_type == JsonType::Array);
+        m_array.push_back(val);
+    }
+
+    void JsonValue::PopbackArrayElement() noexcept
+    {
+        assert(m_type == JsonType::Array);
+        m_array.pop_back();
+    }
+
+    void JsonValue::EraseArrayElement(size_t index, size_t count) noexcept
+    {
+        assert(m_type == JsonType::Array);
+        m_array.erase(m_array.begin() + index, m_array.begin() + index + count);
+    }
+
+    void JsonValue::InsertArrayElement(const JsonValue &val, size_t index) noexcept
+    {
+        assert(m_type == JsonType::Array);
+        m_array.insert(m_array.begin() + index, val);
+    }
+
+    void JsonValue::ClearArray() noexcept
+    {
+        assert(m_type == JsonType::Array);
+        m_array.clear();
+    }
+
     void JsonValue::SetObject(const std::vector<std::pair<std::string, JsonValue>> &obj) noexcept
     {
         if (m_type == JsonType::Object)
@@ -127,6 +157,39 @@ namespace SJson
     {
         assert(m_type == JsonType::Object);
         return m_object[index].first.size();
+    }
+
+    long long JsonValue::FindObjectIndex(const std::string &key) const noexcept
+    {
+        assert(m_type == JsonType::Object);
+        for (size_t i = 0, n = m_object.size(); i < n; ++i)
+        {
+            if (m_object[i].first == key)
+                return i;
+        }
+        return -1;
+    }
+
+    void JsonValue::SetObjectValue(const std::string &key, const JsonValue &val) noexcept
+    {
+        assert(m_type == JsonType::Object);
+        auto index = FindObjectIndex(key);
+        if (index >= 0)
+            m_object[index].second = val;
+        else
+            m_object.push_back(std::make_pair(key, val));
+    }
+
+    void JsonValue::RemoveObjectValue(size_t index) noexcept
+    {
+        assert(m_type == JsonType::Object);
+        m_object.erase(m_object.begin() + index, m_object.begin() + index + 1);
+    }
+
+    void JsonValue::ClearObject() noexcept
+    {
+        assert(m_type == JsonType::Object);
+        m_object.clear();
     }
 
     void JsonValue::Stringify(std::string &content) const noexcept
@@ -171,8 +234,34 @@ namespace SJson
     }
     bool operator==(const JsonValue &lhs, const JsonValue &rhs) noexcept
     {
-        /* todo */
-        return false;
+        if (lhs.m_type != rhs.m_type)
+            return false;
+        // 对于 true、false、null 这三种类型，比较类型后便完成比较。而对于数组、对象、数字、字符串，需要进一步检查是否相等
+        switch (lhs.m_type)
+        {
+        case JsonType::Number:
+            return lhs.m_num == rhs.m_num;
+        case JsonType::String:
+            return lhs.m_string == rhs.m_string;
+        case JsonType::Array:
+            return lhs.m_array == rhs.m_array;
+        case JsonType::Object:
+            // 对于对象，先比较键值对的个数是否相等
+            if (lhs.GetObjectSize() != rhs.GetObjectSize())
+                return false;
+            // 相等的话，对左边的键值对，依次在右边进行寻找
+            for (size_t i = 0, n = lhs.GetObjectSize(); i < n; i++)
+            {
+                // 根据左边对象的键值对，在右边对象中寻找相对应的索引
+                auto index = rhs.FindObjectIndex(lhs.GetObjectKey(i));
+                // key 不存在或者左右对象的 value 值不相等，直接返回 0
+                if (index < 0 || lhs.GetObjectValue(i) != rhs.GetObjectValue(index))
+                    return false;
+            }
+            return true;
+        default:
+            return true;
+        }
     }
     bool operator!=(const JsonValue &lhs, const JsonValue &rhs) noexcept
     {

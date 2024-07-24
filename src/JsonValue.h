@@ -32,6 +32,11 @@ namespace SJson
         size_t GetArraySize() const noexcept;
         const JsonValue &GetArrayElement(size_t index) const noexcept;
         void SetArray(const std::vector<JsonValue> &arr) noexcept;
+        void PushbackArrayElement(const JsonValue &val) noexcept;
+        void PopbackArrayElement() noexcept;
+        void EraseArrayElement(size_t index, size_t count) noexcept;
+        void InsertArrayElement(const JsonValue &val, size_t index) noexcept;
+        void ClearArray() noexcept;
 
         /* object */
         void SetObject(const std::vector<std::pair<std::string, JsonValue>> &obj) noexcept;
@@ -39,7 +44,10 @@ namespace SJson
         const std::string &GetObjectKey(size_t index) const noexcept;
         const JsonValue &GetObjectValue(size_t index) const noexcept;
         size_t GetObjectKeyLength(size_t index) const noexcept;
-
+        long long FindObjectIndex(const std::string &key) const noexcept;
+        void SetObjectValue(const std::string &key, const JsonValue &val) noexcept;
+        void RemoveObjectValue(size_t index) noexcept;
+        void ClearObject() noexcept;
         /* serialize */
         void Stringify(std::string &content) const noexcept;
 

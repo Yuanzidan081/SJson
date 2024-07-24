@@ -405,3 +405,230 @@ TEST(TestStringify, Stringify)
     test_roundtrip("true");
     test_roundtrip("false");
 }
+
+#define test_equal(json1, json2, equality)  \
+    do                                      \
+    {                                       \
+        SJson::Json v1, v2;                 \
+        v1.Parse(json1, status);            \
+        EXPECT_EQ("parse ok", status);      \
+        v2.Parse(json2, status);            \
+        EXPECT_EQ("parse ok", status);      \
+        EXPECT_EQ(equality, int(v1 == v2)); \
+    } while (0)
+
+// 测试是否相等
+TEST(TestEqual, Equal)
+{
+    test_equal("true", "true", 1);
+    test_equal("true", "false", 0);
+    test_equal("false", "false", 1);
+    test_equal("null", "null", 1);
+    test_equal("null", "0", 0);
+    test_equal("123", "123", 1);
+    test_equal("123", "456", 0);
+    test_equal("\"abc\"", "\"abc\"", 1);
+    test_equal("\"abc\"", "\"abcd\"", 0);
+    test_equal("[]", "[]", 1);
+    test_equal("[]", "null", 0);
+    test_equal("[1,2,3]", "[1,2,3]", 1);
+    test_equal("[1,2,3]", "[1,2,3,4]", 0);
+    test_equal("[[]]", "[[]]", 1);
+    test_equal("{}", "{}", 1);
+    test_equal("{}", "null", 0);
+    test_equal("{}", "[]", 0);
+    test_equal("{\"a\":1,\"b\":2}", "{\"a\":1,\"b\":2}", 1);
+    test_equal("{\"a\":1,\"b\":2}", "{\"b\":2,\"a\":1}", 1);
+    test_equal("{\"a\":1,\"b\":2}", "{\"a\":1,\"b\":3}", 0);
+    test_equal("{\"a\":1,\"b\":2}", "{\"a\":1,\"b\":2,\"c\":3}", 0);
+    test_equal("{\"a\":{\"b\":{\"c\":{}}}}", "{\"a\":{\"b\":{\"c\":{}}}}", 1);
+    test_equal("{\"a\":{\"b\":{\"c\":{}}}}", "{\"a\":{\"b\":{\"c\":[]}}}", 0);
+}
+
+// 测试是否拷贝
+TEST(TestCopy, Copy)
+{
+    SJson::Json v1, v2;
+    v1.Parse("{\"t\":true,\"f\":false,\"n\":null,\"d\":1.5,\"a\":[1,2,3]}");
+    v2 = v1;
+    EXPECT_EQ(1, int(v2 == v1));
+}
+
+// 测试是否移动
+TEST(TestMove, Move)
+{
+    using namespace SJson;
+    SJson::Json v1, v2, v3;
+    v1.Parse("{\"t\":true, \"f\":false, \"n\":null, \"d\":1.5, \"a\":[1,2,3]}");
+    v2 = v1;
+    v3 = std::move(v2);
+    EXPECT_EQ(JsonType::Null, v2.GetType());
+    EXPECT_EQ(1, int(v3 == v1));
+}
+
+// 测试是否交换
+TEST(TestSwap, Swap)
+{
+    SJson::Json v1, v2;
+    v1.SetString("Hello");
+    v2.SetString("World!");
+    SJson::swap(v1, v2);
+    EXPECT_EQ("World!", v1.GetString());
+    EXPECT_EQ("Hello", v2.GetString());
+}
+
+// 测试访问null
+TEST(TestAccessNull, AccessNull)
+{
+    using namespace SJson;
+    SJson::Json v;
+    v.SetString("a");
+    v.SetNull();
+    EXPECT_EQ(JsonType::Null, v.GetType());
+}
+
+// 测试访问bool
+TEST(TestAccessBoolean, AccessBoolean)
+{
+    using namespace SJson;
+    SJson::Json v;
+    v.SetString("a");
+    v.SetBoolean(false);
+    EXPECT_EQ(JsonType::False, v.GetType());
+
+    v.SetString("a");
+    v.SetBoolean(true);
+    EXPECT_EQ(JsonType::True, v.GetType());
+}
+
+// 测试访问string
+TEST(TestAccessString, AccessString)
+{
+    using namespace SJson;
+    SJson::Json v;
+    v.SetString("");
+    EXPECT_EQ("", v.GetString());
+
+    v.SetString("Hello");
+    EXPECT_EQ("Hello", v.GetString());
+}
+
+// 测试访问array
+TEST(TestAccessArray, AccessArray)
+{
+    using namespace SJson;
+    SJson::Json a, e;
+
+    for (size_t j = 0; j < 5; j += 5)
+    {
+        a.SetArray();
+        EXPECT_EQ(0, a.GetArraySize());
+        for (int i = 0; i < 10; ++i)
+        {
+            e.SetNumber(i);
+            a.PushbackArrayElement(e);
+        }
+
+        EXPECT_EQ(10, a.GetArraySize());
+        for (int i = 0; i < 10; ++i)
+            EXPECT_EQ(static_cast<double>(i), a.GetArrayElement(i).GetNumber());
+    }
+
+    a.PopbackArrayElement();
+    EXPECT_EQ(9, a.GetArraySize());
+    for (int i = 0; i < 9; ++i)
+        EXPECT_EQ(static_cast<double>(i), a.GetArrayElement(i).GetNumber());
+
+    a.EraseArrayElement(4, 0);
+    EXPECT_EQ(9, a.GetArraySize());
+    for (int i = 0; i < 9; ++i)
+        EXPECT_EQ(static_cast<double>(i), a.GetArrayElement(i).GetNumber());
+
+    a.EraseArrayElement(8, 1);
+    EXPECT_EQ(8, a.GetArraySize());
+    for (int i = 0; i < 8; ++i)
+        EXPECT_EQ(static_cast<double>(i), a.GetArrayElement(i).GetNumber());
+
+    a.EraseArrayElement(0, 2);
+    EXPECT_EQ(6, a.GetArraySize());
+    for (int i = 0; i < 6; ++i)
+        EXPECT_EQ(static_cast<double>(i + 2), a.GetArrayElement(i).GetNumber());
+
+    for (int i = 0; i < 2; ++i)
+    {
+        e.SetNumber(i);
+        a.InsertArrayElement(e, i);
+    }
+
+    EXPECT_EQ(8, a.GetArraySize());
+    for (int i = 0; i < 8; ++i)
+        EXPECT_EQ(static_cast<double>(i), a.GetArrayElement(i).GetNumber());
+
+    e.SetString("Hello");
+    a.PushbackArrayElement(e);
+
+    a.ClearArray();
+    EXPECT_EQ(0, a.GetArraySize());
+}
+
+// 测试访问object
+TEST(TestAccessObject, AccessObject)
+{
+    using namespace SJson;
+    SJson::Json o, v;
+    for (int j = 0; j <= 5; j += 5)
+    {
+        o.SetObject();
+        EXPECT_EQ(0, o.GetObjectSize());
+        for (int i = 0; i < 10; ++i)
+        {
+            std::string key = "a";
+            key[0] += i;
+            v.SetNumber(i);
+            o.SetObjectValue(key, v);
+        }
+
+        EXPECT_EQ(10, o.GetObjectSize());
+        for (int i = 0; i < 10; ++i)
+        {
+            std::string key = "a";
+            key[0] += i; // 'a'+1=b，这里就是改变字符
+            auto index = o.FindObjectIndex(key);
+            EXPECT_EQ(1, static_cast<int>(index >= 0));
+            v = o.GetObjectValue(index);
+            EXPECT_EQ(static_cast<double>(i), v.GetNumber());
+        }
+    }
+
+    auto index = o.FindObjectIndex("j");
+    EXPECT_EQ(1, static_cast<int>(index >= 0));
+    o.RemoveObjectValue(index);
+    index = o.FindObjectIndex("j");
+    EXPECT_EQ(1, static_cast<int>(index < 0));
+    EXPECT_EQ(9, o.GetObjectSize());
+
+    index = o.FindObjectIndex("a");
+    EXPECT_EQ(1, static_cast<int>(index >= 0));
+    o.RemoveObjectValue(index);
+    index = o.FindObjectIndex("a");
+    EXPECT_EQ(1, static_cast<int>(index < 0));
+    EXPECT_EQ(8, o.GetObjectSize());
+
+    for (int i = 0; i < 8; i++)
+    {
+        std::string key = "a";
+        key[0] += i + 1;
+        EXPECT_EQ((double)i + 1, o.GetObjectValue(o.FindObjectIndex(key)).GetNumber());
+    }
+
+    v.SetString("Hello");
+    o.SetObjectValue("World", v);
+
+    index = o.FindObjectIndex("World");
+    EXPECT_EQ(1, static_cast<int>(index >= 0));
+    v = o.GetObjectValue(index);
+    EXPECT_EQ("Hello", v.GetString());
+
+    o.ClearObject();
+    EXPECT_EQ(0, o.GetObjectSize());
+}
