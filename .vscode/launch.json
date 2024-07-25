@@ -8,8 +8,8 @@
             //"program": "${workspaceFolder}/bin/Debug/mathTest.exe", //程序可执行文件的完整路径。
             //"program": "${workspaceFolder}/bin/Debug/modelTest.exe", //程序可执行文件的完整路径。
             //"program": "${fileDirname}/${fileBasenameNoExtension}.exe", //程序可执行文件的完整路径。
-            "program": "${workspaceFolder}/build/test/Debug/SJsonGTest.exe", //程序可执行文件的完整路径。
-            //"program": "${workspaceFolder}/build/test/Debug/SJsonTest.exe", //程序可执行文件的完整路径。
+            //"program": "${workspaceFolder}/build/test/Debug/SJsonGTest.exe", //程序可执行文件的完整路径。
+            "program": "${workspaceFolder}/build/test/Debug/SJsonTest.exe", //程序可执行文件的完整路径。
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
