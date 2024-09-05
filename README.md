@@ -1,5 +1,5 @@
 # SJson
-a json parser base on json-tutorial[json-tutorial](https://github.com/miloyip/json-tutorial)(written by C++)。
+a json parser refactored written by C++ base on the C-style Json Parser[json-tutorial](https://github.com/miloyip/json-tutorial)。
 
 # project organization
 + src: the source file
