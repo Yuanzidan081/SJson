@@ -33,7 +33,7 @@ task.json
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "command": "cmake", //command 命令，这个不用说了
+            "command": "cmake", 
             "args": [
                 "-S",
                 ".",
@@ -56,7 +56,6 @@ task.json
                 "build"
             ],
         },
-        // 运行程序
         {
             "label": "preparation",
             "dependsOn": [
@@ -78,14 +77,14 @@ launch.json
             "name": "launch SRendererLab",
             "type": "cppvsdbg",
             "request": "launch",
-            //"program": "${workspaceFolder}/build/test/Debug/SJsonGTest.exe", //程序可执行文件的完整路径。
-            "program": "${workspaceFolder}/build/test/Debug/SJsonTest.exe", //程序可执行文件的完整路径。
+            //"program": "${workspaceFolder}/build/test/Debug/SJsonGTest.exe",
+            "program": "${workspaceFolder}/build/test/Debug/SJsonTest.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "externalTerminal",
-            "preLaunchTask": "preparation" //与tasks.json文件里的label名对应
+            "preLaunchTask": "preparation"
         }
     ]
 }
