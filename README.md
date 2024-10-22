@@ -11,8 +11,6 @@ a json parser refactored written by C++ base on the C-style Json Parser[json-tut
 + dep: Test Framework: GoogleTest
 + test: unit test using GoogleTest
 
-# class description
-
 
 # how to start
 ```
